@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello OpenCV.js</title>
+</head>
+
+<body>
+    <h2>Image Focous Score</h2>
+    <div>
+        <div class="inputoutput">
+            <img id="imageSrc"  />
+            <div class="caption">Image
+                <input type="file" id="canvasInput" name="file" />
+            </div>
+            <h1 id="p1">Focus Score:</h1>
+        </div>
+        <div class="inputoutput">
+            <canvas id="canvasOutput"></canvas>
+            <!-- <div class="caption">t</div> -->
+        </div>
+    </div>
+    <script type="text/javascript">
+        let imgElement = document.getElementById('imageSrc');
+        let inputElement = document.getElementById('canvasInput');
+
+        inputElement.addEventListener('change', (e) => {
+            imgElement.src = URL.createObjectURL(e.target.files[0]);
+        }, false);
+
+        imgElement.onload = function () {
+            let src = cv.imread(imgElement);
+            let dst = new cv.Mat();
+            let mean = new cv.Mat();
+            let stddev = new cv.Mat();
+
+            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+            cv.Laplacian(src, dst, cv.CV_64F);
+
+            cv.meanStdDev(dst, mean, stddev);
+            let focusScore = stddev.data64F[0] * stddev.data64F[0]; // Variance of the Laplacian
+            
+            document.getElementById("p1").innerHTML = `Focus Score: ${focusScore.toFixed(2)}`;
+
+            cv.imshow('canvasOutput', dst);
+            src.delete();
+            dst.delete();
+            mean.delete();
+            stddev.delete();
+        };
+
+        function onOpenCvReady() {
+            document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+        }
+    </script>
+    <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+
+</html>
